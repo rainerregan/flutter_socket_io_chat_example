@@ -1,9 +1,21 @@
+import 'dart:convert';
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_socket_io_chat_example/constants.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
+import 'package:flutter_chat_types/flutter_chat_types.dart' as types;
+import 'package:flutter_chat_ui/flutter_chat_ui.dart';
 
 void main() {
   runApp(const MyApp());
+}
+
+// For the testing purposes, you should probably use https://pub.dev/packages/uuid.
+String randomString() {
+  final random = Random.secure();
+  final values = List<int>.generate(16, (i) => random.nextInt(255));
+  return base64UrlEncode(values);
 }
 
 class MyApp extends StatelessWidget {
@@ -17,23 +29,21 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+      home: const MyHomePage(),
     );
   }
 }
 
 class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
-
-  final String title;
+  const MyHomePage({super.key});
 
   @override
   State<MyHomePage> createState() => _MyHomePageState();
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
-
+  final List<types.Message> _messages = [];
+  final _user = const types.User(id: '82091008-a484-4a89-ae75-a22bf8d6f3ac');
   late IO.Socket socket;
 
   @override
@@ -50,38 +60,29 @@ class _MyHomePageState extends State<MyHomePage> {
     super.initState();
   }
 
-  void _incrementCounter() {
+  @override
+  Widget build(BuildContext context) => Scaffold(
+        body: Chat(
+          messages: _messages,
+          onSendPressed: _handleSendPressed,
+          user: _user,
+        ),
+      );
+
+  void _addMessage(types.Message message) {
     setState(() {
-      _counter++;
+      _messages.insert(0, message);
     });
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        title: Text(widget.title),
-      ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            const Text(
-              'You have pushed the button this many times:',
-            ),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headlineMedium,
-            ),
-          ],
-        ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
-      ),
+  void _handleSendPressed(types.PartialText message) {
+    final textMessage = types.TextMessage(
+      author: _user,
+      createdAt: DateTime.now().millisecondsSinceEpoch,
+      id: randomString(),
+      text: message.text,
     );
+
+    _addMessage(textMessage);
   }
 }
