@@ -56,6 +56,7 @@ class _MyHomePageState extends State<MyHomePage> {
           .build(),
     );
     socket.connect();
+    setupMessageListener();
 
     super.initState();
   }
@@ -83,6 +84,24 @@ class _MyHomePageState extends State<MyHomePage> {
       text: message.text,
     );
 
-    _addMessage(textMessage);
+    _addMessage(textMessage); // Add message to the state
+
+    socket.emit(
+        'chat message', textMessage.toJson()); // Emit the message to the socket
+  }
+
+  /// Setup Message Listener
+  /// Handling received message from the socket
+  void setupMessageListener() {
+    socket.on('message-receive', (data) {
+      // Create the message class from the data
+      final message = types.TextMessage(
+        author: types.User(id: data['author']),
+        id: data['id'],
+        text: data['text'],
+      );
+
+      _addMessage(message); // Add Message to the state
+    });
   }
 }
