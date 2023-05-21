@@ -70,11 +70,11 @@ class _MyHomePageState extends State<MyHomePage> {
 
   void _handleSendPressed(types.PartialText message) {
     final textMessage = types.TextMessage(
-      author: _user,
-      createdAt: DateTime.now().millisecondsSinceEpoch,
-      id: uuid.v1(),
-      text: message.text,
-    );
+        author: _user,
+        createdAt: DateTime.now().millisecondsSinceEpoch,
+        id: uuid.v1(),
+        text: message.text,
+        status: types.Status.delivered);
 
     _addMessage(textMessage); // Add message to the state
 
